@@ -1,0 +1,393 @@
+\documentclass[conference]{IPEC2026}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%Template version as of 6/27/2024
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Holistic Efficiency Optimization of Traction Drives Accounting for Machine Harmonic Losses using Improved Impedance-based Modelling
+% : Analysis and Mitigation Strategies
+\\
+% {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
+% should not be used}
+\thanks{Research leading to these results has received funding from the EU CHIPSJoint Undertaking under grant agreement $n^o$ 101007326 (project PowerizeD) and from the (Swedish) partner national funding authority Vinnova. Funding for this research has also been received from the Swedish Energy Agency under grant agreement P2022-00956 through the HEMIZERO project.
+%by the Chips Joint Undertaking
+}
+}
+
+% Please replace * with your track number
+\track{: 6 Vehicle Electrification-related Technologies}
+
+
+\maketitle
+
+\begin{abstract}
+The electrification of heavy-duty vehicles is crucial for reducing greenhouse gas emissions and achieving sustainable transportation. High-efficiency traction systems, including inverters and machines, play a central role in this transition. 
+Although the loss analysis for the inverter side is well-studied, harmonic loss of the motor side is still worth investigating, and traditional optimization approaches treat these components independently, resulting in suboptimal system efficiency.
+This study highlights the trade-off between motor and inverter losses, driven by switching frequency, and emphasizes the need for a holistic system-level perspective. 
+Further, a new loss factor modeling approach is proposed to estimate motor harmonic losses accurately, optimizing total system efficiency while maintaining sustainability.
+\end{abstract}
+
+\begin{IEEEkeywords}
+component, formatting, style, styling, insert.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+The electrification of heavy-duty vehicles is one of the milestones to reach sustainable transportation, providing significant reductions in greenhouse gas emissions compared to combustion engine rivals \cite{ElectrificationVehicles}. 
+At the heart of this transition lies the development of high-efficiency traction systems, comprising the inverter and electric machine, which are critical for minimizing energy losses and achieving sustainability goals \cite{HeartOfTraction,Outlook_EV}.
+Traditional optimization methods to achieve a high-efficiency traction system often treat inverters and machines as independent entities, neglecting their interactions \cite{Traditional_Optimization,Traditional_Optimization_2}. 
+However, the non-sinusoidal current waveforms produced by pulse-width modulation (PWM) inverters result in additional machine losses, called harmonic losses \cite{PWMLoss1,PWMLoss3}. 
+Therefore, a critical challenge in achieving optimal system efficiency lies in balancing the trade-off between PWM-related motor harmonic losses and inverter losses \cite{PWMLoss2}. 
+For instance, as switching frequency increases, inverter losses rise due to higher switching events, while motor harmonic losses decrease as the current ripple diminishes and harmonics shift to higher frequencies. 
+Inverter efficiency modeling and optimization have been extensively explored in the literature, focusing on parameters such as switching frequency and die area \cite{DieAreaOptimization}. 
+However, accurate estimation of motor harmonic losses remains a challenging task and is worth investigating deeply. 
+
+Studies have investigated the impact of PWM inverter on machine losses, considering factors like: switching frequency and modulation strategies \cite{PWM_motor_studies, PWM_motor_studies2}.
+Estimating PWM-induced machine losses can be approached through both modeling/simulation and experimental methods, each offering unique advantages and challenges.
+The modeling/simulation approach, often utilizing finite element analysis (FEA), provides detailed insights into losses within windings and stator/rotor cores \cite{Modelling_PWM_loss, Modelling_PWM_loss_2,Modelling_PWM_loss_3}.
+While this method can accurately capture the spatial distribution of losses, it is computationally expensive and may be less precise when the losses are a small fraction of the transferred power.
+On the other hand, the experimental approach involves techniques like harmonic injection and impedance measurement, which isolate specific harmonic losses and loss separation between fundamental and harmonic components, helping to distinguish the impact of high-frequency switching \cite{Impedance_based,harmonic_injection, Harmonic_injection_2}. 
+The main idea in these methods is to extract a loss factor regarding each frequency component, which, later on, might be implemented into the optimization to calculate the losses for specific modulations. In these methods, frequency-domain superposition is regarded, and the power losses are estimated independently for different frequency components.  
+%find a sweet operating point of switching frequency for specific modulations.
+However, it is experimentally observed that the dynamic behavior of motors often results in interaction between harmonics, which causes discrepancies. 
+
+%persistent discrepancies, underscoring the need for more precision.
+
+In the literature, the interaction of the harmonics, which affects the loss factor of the experimental modeling, has not been studied well. 
+The interaction is investigated for induction machines in \cite{interaction_harmonics} and for rotor losses in \cite{rotor_losses_1,rotor_losses_2}, but it is still not clear how to implement the modulated waveforms into the loss factor calculation to estimate the harmonic losses at specific operating points of the traction drive. 
+This study proposes a method to add the effect of pair harmonics into impedance-based loss modelling to improve the estimation of motor harmonic losses, enabling a more accurate and integrated evaluation of total system efficiency. 
+Then, a holistic approach to efficiency optimization is proposed to find the optimum switching frequency and die area of the selected power switches. 
+
+% This paper is organized as follows. 
+% Section II provides system specifications and requirements 
+% Section III provides system specifications and requirements 
+% Section IV provides system specifications and requirements 
+% Section V provides system specifications and requirements 
+
+
+\section{System Specifications and Requirements}
+Beyond efficiency, reducing the component count—such as minimizing the number of semiconductors, isolated gate drivers, and control resources—contributes to a smaller carbon footprint and promotes the development of more sustainable systems.
+In this context, two-level, three-phase inverter and machine systems remain a viable solution.
+Compared to multi-level and multi-phase systems, two-level configurations require fewer components, which simplifies system design and reduces complexity while maintaining operational efficiency. 
+These advantages still make two-level 3-phase systems an attractive choice for heavy-duty vehicle applications, where reliability, cost-effectiveness, and sustainability are paramount.
+Table \ref{tab:systempar} outlines the system specifications for heavy-duty vehicles in the current application.
+To ensure efficient and reliable megawatt charging, a DC-link voltage of 1250V has been selected.
+The system's power rating, determined as 300kW, is based on the vehicle dynamics and the load requirements of heavy-duty vehicles.
+The traction system utilizes a 3-phase configuration, with phase voltage and current designed to meet the specified power rating.
+The optimal switching frequency, within the range of 10kHz to 30kHz, is chosen based on the power devices and system requirements.
+
+\begin{table}[h]
+\centering
+\caption{System Specifications and Requirements}
+\begin{tabular}{ll}
+\textbf{Parameter }& Value \\
+\hline
+\hline
+\textbf{Power Rating}& $300~kW$ \\
+\textbf{Input Voltage $\mathrm{V_{in}}$} & $1250~V$ \\
+\textbf{Input Current $\mathrm{I_{in}}$} & $240~A$ \\
+\textbf{Phase Voltage $\mathrm{V_{pn}}$} & $625~V$ \\
+\textbf{Power Factor $\mathrm{p_{f}}$} & $0.9$ \\
+\textbf{Phase Current $\mathrm{I_{p}}$} & $356~A$\\
+\textbf{Switching Frequency $\mathrm{f_{s}}$} & $10-25~kHz$ \\
+\hline 
+\\
+\end{tabular}
+\label{tab:systempar}
+\end{table}
+
+
+
+\section{Harmonic Loss Estimation: Improved Impedance Model}
+The conventional approach models the machine with a frequency-dependent impedance $Z(j\omega)$, measured using an LCR meter or harmonic injection, as an example shown in Fig. \ref{fig:impedance_motor}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Figures/HarmonicLoss/ImpadanceMotor.png}
+    \caption{The impedance measurement of the Electric Machine.}
+    \label{fig:impedance_motor}
+\end{figure}
+
+From the measured impedance, a \emph{loss factor} $\Phi(\omega)$ is extracted as
+\begin{equation}
+    \Phi(\omega) \;=\; \frac{P_{\text{add}}(\omega)}{|V(\omega)|^2},
+    \label{eq:loss_factor}
+\end{equation}
+where $P_{\text{add}}(\omega)$ is the additional harmonic loss at frequency $\omega$ and $|V(\omega)|$ is the harmonic voltage magnitude. 
+An example loss factor curve is shown in Fig. \ref{fig:loss_factor} 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Figures/HarmonicLoss/LossFactor.png}
+    \caption{The loss factor of electric machine.}
+    \label{fig:loss_factor}
+\end{figure}
+
+
+By combining these loss factors with the harmonic spectrum obtained from the inverter modulation (via FFT of the switching function), the total harmonic losses are calculated as
+\begin{equation}
+    P_{\text{harm}} = \sum_{n\neq 1} \Phi(\omega_n)\,|V_n|^2,
+    \label{eq:freq_loss}
+\end{equation}
+where $\omega_n=n\omega_e$ is the $n$th harmonic frequency. The flowchart of the calculation is given in Fig. \ref{fig:loss_calculation}.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/HarmonicLoss/LossCaclulationConventional.png}
+    \caption{The flow-chart of the loss calculation.}
+    \label{fig:loss_calculation}
+\end{figure}
+
+
+This frequency-domain superposition is valid only for non-saturated machines with negligible saliency ($L_d \approx L_q$). When saturation or saliency is present, the $d$–$q$ coupling introduces interactions between harmonic pairs, and \eqref{eq:freq_loss} is no longer sufficient.
+To investigate this limitation, voltage and current waveforms were measured under inverter excitation, as shown in Fig.\ref{fig:voltagecurrentTime}. 
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/HarmonicLoss/voltageCurrentTime.png}
+    \caption{Phase Voltage and Current of the Electric Machine.}
+    \label{fig:voltagecurrentTime}
+\end{figure}
+
+
+The instantaneous power was calculated for each specific frequency using FFTs of the voltage and currents. :
+\begin{equation}
+    S(\omega_n) = V(\omega_n) I^*(\omega_n), \quad
+    P(\omega_n) = \Re\{S(\omega_n)\}.
+    \label{eq:fft_power}
+\end{equation}
+The resulting spectrum reveals that several components have negative values of $P(\omega_n)$, i.e., certain harmonics appear as power-generating terms as shown in Fig. \ref{fig:powerFFT}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/HarmonicLoss/FFTPower_exp.png}
+    \caption{Power spectrum of the Inverter.}
+    \label{fig:powerFFT}
+\end{figure}
+
+This indicates interaction between harmonics, which cannot be explained by the independent-harmonic model for estimating the losses.
+% The source of these effects is the difference between $L_d$ and $L_q$.  
+% To capture this effect, the loss factor multiplication must be updated regarding the harmonic interaction. 
+The interaction can be explained by saturation and saliency, i.e., $L_d \neq L_q$, which introduces a double-fundamental modulation of the phase inductance. A simple time-varying inductance model is
+\begin{equation}
+    L(t) \;=\; L_0 \;+\; \Delta L \,\sin\!\big(2\omega_e t - \theta\big),
+    \label{eq:L_time}
+\end{equation}
+with $L_0=\tfrac{L_d+L_q}{2}$, $\Delta L=\tfrac{L_q-L_d}{2}$, and $\omega_e$ the fundamental electrical frequency. Since $i(t)\approx \tfrac{1}{L(t)}\!\int v(t)dt$, the $2\omega_e$ modulation in \eqref{eq:L_time} mixes spectral components whose frequency indices differ by two. In the frequency domain, this yields the small-signal relation
+\begin{equation}
+    I_n \;\approx\; Y_n V_n \;+\; \sum_{m} Y_{n,m}\,V_m,\qquad 
+    Y_{n,m} \neq 0 \;\;\text{only if}\;\; |n-m|=2,
+    \label{eq:mixing}
+\end{equation}
+where $Y_n$ is the self-admittance at $\omega_n=n\omega_e$ and $Y_{n,m}$ are saliency-induced cross-admittances created by the $2\omega_e$ modulation. Consequently, harmonic pairs such as $(n,m)$ exchange energy and no longer behave independently.
+
+To reflect this in a voltage-based loss formulation, we augment the conventional superposition with pairwise cross terms. Denoting a voltage-based stator loss factor $\Phi_s(\omega)$ (identified from impedance/LCR data) and collecting only the dominant saliency-coupled pairs ($|n-m|=2$), we write
+\begin{equation}
+    P_{\text{harm}} \;=\; \sum_{n\neq 1} \Phi_s(\omega_n)\,|V_n|^2
+    \;+\; \sum_{\substack{n\neq m\\ |n-m|=2}}
+    \chi_{n,m}\,\Re\!\big\{V_n V_m^{*}\big\}
+    \label{eq:saliency_loss}
+\end{equation}
+where the interaction coefficients $\chi_{n,m}$ compactly capture the effect of $Y_{n,m}$ in \eqref{eq:mixing} and the voltage-to-loss mapping. 
+In practice, $\chi_{n,m}$ can be identified from measured spectra by least squares across operating points. Negative bars in the measured power spectrum (Fig.~\ref{fig:powerFFT}) occur when $\Re\!\{V_n V_m^{*}\}<0$ and/or $\chi_{n,m}<0$, producing partial cancellation and apparent ``generation'' at certain frequencies.
+
+
+
+
+% Each harmonic must therefore be decomposed into positive- and negative-sequence components:
+% \begin{equation}
+%     V_{+,n} = \tfrac{1}{3}(V_{a,n}+a^2 V_{b,n}+a V_{c,n}), \quad
+%     V_{-,n} = \tfrac{1}{3}(V_{a,n}+a V_{b,n}+a^2 V_{c,n}),
+%     \label{eq:seq_decomp}
+% \end{equation}
+% with $a=e^{j2\pi/3}$. 
+% Since the rotor perceives the same frequency for certain positive–negative sequence pairs, these components interact, leading to amplification or cancellation of the associated harmonic losses. To capture this effect, the loss factor multiplication must be updated by distinguishing stator and rotor contributions for both positive and negative sequences:
+% \begin{equation}
+% \begin{aligned}
+%     P_{\text{harm}} = \sum_{n\neq 1} &\Big(
+%     \Phi_{s}^{(+)}(\omega_{r,n}^{(+)}) |V_{+,n}|^2 +
+%     \Phi_{r}^{(+)}(\omega_{r,n}^{(+)}) |V_{+,n}|^2 \\
+%     &+
+%     \Phi_{s}^{(-)}(\omega_{r,n}^{(-)}) |V_{-,n}|^2 +
+%     \Phi_{r}^{(-)}(\omega_{r,n}^{(-)}) |V_{-,n}|^2
+%     \Big),
+% \end{aligned}
+% \label{eq:seq_loss}
+% \end{equation}
+% where $\Phi_{s}^{(\pm)}$ and $\Phi_{r}^{(\pm)}$ are the stator and rotor loss factors, and $\omega_{r,n}^{(\pm)}$ denote the rotor frequencies observed by positive and negative sequence harmonics. This refined formulation generalizes the conventional superposition approach and explains the negative and interaction terms observed experimentally.
+
+
+% Impadance-based loss factor modeling has been studied before, and LCR meter measurements are widely used and compared the harmonic injection. 
+% The loss calculation of the motor harmonic, after getting the loss factor, is to sum each harmonic component's losses. This is valid, if we do not have saturation and Ld-Lq inductance differences. However, introducing Ld-Lq differences causes interaction between the harmonic pairs, which affects the harmonic losses. 
+% An experimental, time domain voltage and current waveforms are obtained in an experimental setup to define the problem as shown in Fig.X. 
+
+
+\section{Inverter Loss Modelling}
+
+The total inverter losses comprise conduction and switching losses.  
+For a single MOSFET, the conduction loss is
+\begin{equation}
+    \label{eq:conductionlosses}
+     P_c = \frac{1}{2\pi} \int_{\theta_{C1}}^{\theta_{C2}} r_{ds} \, i_{ds}^2(\theta) D(\theta)\,d\theta ,
+\end{equation}
+where $r_{ds}$ is the on-state resistance, $i_{ds}(\theta)$ the device current, $D(\theta)$ the duty ratio, and $\theta_{C1}$–$\theta_{C2}$ the conduction interval.  
+Body diode conduction is neglected, which slightly overestimates reverse conduction and underestimates dead-time losses, partly compensating each other \cite{PotentialAircraft}.
+
+Switching losses consist of zero-current energy and overlap energy \cite{FOMSiC}.  
+The former depends on device output capacitance,
+\begin{equation}
+\label{eq:Psw-0}
+     E_{sw,ZCS} = C_{oss,Q}(U_{dc}) \, U_{dc}^{2},
+\end{equation}
+while the latter depends on current and voltage slopes,
+\begin{equation}
+\label{eq:overlapped}
+     \begin{split}
+     E_{sw,ov} &= \frac{V_{dc} I_{sw}^2}{2\, \tfrac{di}{dt_{on}}} + \frac{V_{dc}^2 I_{sw}}{2\, \tfrac{dv}{dt_{on}}} \\
+     &+ \frac{V_{dc} I_{sw}^2}{2\, \tfrac{di}{dt_{off}}} + \frac{V_{dc}^2 I_{sw}}{2\, \tfrac{dv}{dt_{off}}}.
+    \end{split}
+\end{equation}
+Total switching losses are then
+\begin{equation}
+    \label{eq:switching_general}
+     P_{sw} = \frac{f_{sw}}{2\pi} \int_{\theta_{SW1}}^{\theta_{SW2}} (E_{sw,ov} + E_{sw,ZCS}) \, d\theta .
+\end{equation}
+
+
+% \subsection{Semiconductor Loss Modelling}
+
+% The inverter losses are divided into two main parts: conduction and switching losses of the semiconductor. 
+% The conduction loss for a single switch can be calculated as given by 
+% \begin{equation}
+%     \label{eq:conductionlosses}
+%      P_c = \frac{1}{2\pi} \int_{\theta_{C1}}^{\theta_{C2}} r_{ds} \cdot i_{ds}(\theta)^2 \cdot D(\theta)\,d\theta 
+% \end{equation}
+% where duty cycles ($ D(\theta)$), switch current ($i_{ds}(\theta)$), conduction angles ($ \theta_{C1}$ to $\theta_{C2}$), and on-state resistance ($r_{ds}$) are required.
+% While calculating conduction losses, the effect of the body diode can be ignored in the reverse conduction of MOSFETs and during dead times. 
+% Ignoring the body diode leads to overestimating the loss during the reverse conduction and underestimating the loss during the dead times \cite{PotentialAircraft}. 
+% Therefore, these assumptions partly compensate for each other. 
+
+% The switching loss comprises two main components: zero current switching loss and overlapping loss \cite{FOMSiC}. 
+% The zero current switching energy is reliant on the output capacitance ($C_{oss,Q}$) and switching voltage ($U_{dc}$); however, the overlapping energy is proportionate to $ \dfrac{dV}{dt}$ and $ \dfrac{di}{dt}$.
+% Firstly, the zero current switching energy can be estimated as given by 
+% \begin{equation}
+% \label{eq:Psw-0}
+%      \begin{split}
+%      E_{sw-ZCS} &=C_{oss,Q}(U_{dc}) \cdot U_{dc}^{2} 
+%     \end{split}
+% \end{equation}
+% Secondly, the overlapping switching energy can be calculated as given by 
+% \begin{equation}
+% \label{eq:overlapped}
+%      \begin{split}
+%      E_{sw-overlapping} &= (\dfrac{V_{dc} \cdot I_{sw}^2}{2 \cdot\frac{di}{dt_{on}}} +  \dfrac{V_{dc}^2 \cdot I_{sw}}{2 \cdot\frac{dv}{dt_{on}}})  \\
+%      &+ (\dfrac{V_{dc} \cdot I_{sw}^2}{2 \cdot\frac{di}{dt_{off}}} +  \dfrac{V_{dc}^2 \cdot I_{sw}}{2 \cdot\frac{dv}{dt_{off}}})
+%     \end{split}
+% \end{equation}
+% where  $ \dfrac{dV}{dt}$ and $ \dfrac{di}{dt}$ should be selected regarding layout parasitics, gate driver and isolation requirements of the motor. 
+% Finally, the total switching losses can be calculated by using 
+% \begin{equation}
+%     \label{eq:switching_general}
+%      P_{sw} = \frac{f_{sw}}{2\pi} \int_{\theta_{SW1}}^{\theta_{SW2}}   (E_{sw-overlapping}(\theta)+ E_{sw-ZCS}(\theta))\,d\theta 
+% \end{equation}
+% during a switching angle ($\theta_{SW1}$ to $\theta_{SW2}$). 
+
+
+% \subsection{2-Level Inverter Loss Modelling }
+
+% The conduction and switching angles for switches and diodes are employed in calculating the semiconductor losses using (\ref{eq:conductionlosses}), (\ref{eq:switching_general}).
+
+
+% As presented in Table \ref{tab:2L_cond}, the angles for each switch in a single leg during a positive half-cycle of the line current can be provided. 
+% It is also necessary to recognize that the switching voltage equals the DC-link voltage.
+
+% \begin{table}[h]
+% \centering
+% \caption{Conduction and Switching Angles for 2L-3Ph  \cite{PotentialAircraft}.}
+% \begin{tabular}{ccccc}
+
+% \textbf{Switch} & \textbf{Conduction Angle}  & \textbf{Duty ratio}  & \textbf{Switching Angle} \\
+% % & ($\gamma_1$ to $\gamma_2$) & ($D(\gamma)$) & ($\gamma_3$ to $\gamma_4$) \\
+% \hline  \hline 
+% Upper &  $\phi$ to $\pi + \phi $ & $\frac{1 + m_a\cdot sin(\theta)}{2} $&  $\phi$ to $\pi + \phi $ \\ \hline
+% Lower* &  $\phi$ to $\pi + \phi $  & $\frac{1 - m_a\cdot sin(\theta)}{2} $ &  - \\
+% \hline \hline 
+% % Upper* &   $\pi + \phi $ to $2\pi + \phi $ & $\frac{1 - m_a\cdot sin(\theta)}{2} $&  -\\ \hline
+% % Lower &  $\pi + \phi $ to $2\pi + \phi $ & $\frac{1 - m_a\cdot sin(\theta)}{2} $ & $\pi + \phi $ to $2\pi + \phi $ \\
+% % \hline 
+% % \hline 
+% \end{tabular}
+% % \begin{tablenotes}
+% %       \scriptsize
+% %       \item * means that the switch is in reverse conduction.
+% % \end{tablenotes}
+% \label{tab:2L_cond}
+% \end{table}
+
+
+\section{Holistic Efficiency Optimization of the Traction System}
+
+\subsection{The Selection of Power Switch}
+Selecting the voltage rating of a switch has a noteworthy impact on the design stage of the traction inverter. 
+It is often selected higher than the blocking voltage with a safety factor to account for voltage overshoots caused by high switching speeds and layout parasitics and the effect of cosmic rays on reliability \cite{layout2}.
+In our system, the safety factor of 1.6 is selected, leading to the switches' voltage ratings of 2000 V for 2-level topologies. 
+Furthermore, the current rating of the switch plays a critical role in the efficiency performance of the inverter. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/HolisticOptimization/DieAreaSwitchingFrequency.png}
+    \caption{Inverter losses map for varying switching frequency and die-area.}
+    \label{fig:powerFFT}
+\end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/HolisticOptimization/MaxSwitchingOnlyInverter.png}
+    \caption{Power losses versus switching frequency for the optimized die area. }
+    \label{fig:powerFFT}
+\end{figure}
+
+\subsection{The Loss Factor Of The Machine}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/HolisticOptimization/MotorHarmonicLosses.png}
+    \caption{Motor Harmonic Losses.}
+    \label{fig:powerFFT}
+\end{figure}
+
+
+\subsection{Loss Trade-off}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/HolisticOptimization/OverallLossOptimization.png}
+    \caption{Overall Loss Optimization}
+    \label{fig:powerFFT}
+\end{figure}
+
+
+\color{red}
+The remaining parts will be given in the full paper.
+\section{Experimental Validation}
+
+\section{Conclusion }
+
+
+\color{black}
+\bibliographystyle{IEEEtran}
+%\vspace*{-4mm}
+\bibliography{ref.bib}
+
+
+\end{document}
