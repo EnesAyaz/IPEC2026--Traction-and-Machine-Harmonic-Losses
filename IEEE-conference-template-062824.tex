@@ -13,7 +13,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Holistic Efficiency Optimization of Traction Drives Accounting for Machine Harmonic Losses using Improved Impedance-based Modelling
+\title{Holistic Efficiency Optimization of Traction Drives Accounting for Machine Harmonic Losses using an Improved Impedance-based Modelling
 % : Analysis and Mitigation Strategies
 \\
 % {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
@@ -75,10 +75,10 @@ Then, a holistic approach to efficiency optimization is proposed to find the opt
 
 
 \section{System Specifications and Requirements}
-Beyond efficiency, reducing the component count—such as minimizing the number of semiconductors, isolated gate drivers, and control resources—contributes to a smaller carbon footprint and promotes the development of more sustainable systems.
-In this context, two-level, three-phase inverter and machine systems remain a viable solution.
-Compared to multi-level and multi-phase systems, two-level configurations require fewer components, which simplifies system design and reduces complexity while maintaining operational efficiency. 
-These advantages still make two-level 3-phase systems an attractive choice for heavy-duty vehicle applications, where reliability, cost-effectiveness, and sustainability are paramount.
+Beyond efficiency, reducing the component count —such as minimizing the number of semiconductors, isolated gate drivers, and control resources —contributes to a smaller carbon footprint and promotes the development of more sustainable systems.
+%In this context, two-level three-phase drives remain a viable solution.
+Compared to multi-level and multi-phase systems, two-level and three-phase configurations require fewer components, which simplifies system design and reduces complexity while maintaining operational efficiency. 
+These advantages still make two-level three-phase systems an attractive choice for heavy-duty vehicle applications, where reliability, cost-effectiveness, and sustainability are paramount.
 Table \ref{tab:systempar} outlines the system specifications for heavy-duty vehicles in the current application.
 To ensure efficient and reliable megawatt charging, a DC-link voltage of 1250V has been selected.
 The system's power rating, determined as 300kW, is based on the vehicle dynamics and the load requirements of heavy-duty vehicles.
@@ -98,7 +98,7 @@ The optimal switching frequency, within the range of 10kHz to 30kHz, is chosen b
 \textbf{Phase Voltage $\mathrm{V_{pn}}$} & $625~V$ \\
 \textbf{Power Factor $\mathrm{p_{f}}$} & $0.9$ \\
 \textbf{Phase Current $\mathrm{I_{p}}$} & $356~A$\\
-\textbf{Switching Frequency $\mathrm{f_{s}}$} & $10-25~kHz$ \\
+\textbf{Switching Frequency $\mathrm{f_{s}}$} & $10-30~kHz$ \\
 \hline 
 \\
 \end{tabular}
@@ -106,112 +106,83 @@ The optimal switching frequency, within the range of 10kHz to 30kHz, is chosen b
 \end{table}
 
 
+\section{Motor Harmonic Loss Estimation: Improved Impedance Model}
 
-\section{Harmonic Loss Estimation: Improved Impedance Model}
-The conventional approach models the machine with a frequency-dependent impedance $Z(j\omega)$, measured using an LCR meter or harmonic injection, as an example shown in Fig. \ref{fig:impedance_motor}
+\subsection{Conventional Frequency-Domain Method}
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.8\linewidth]{Figures/HarmonicLoss/ImpadanceMotor.png}
-    \caption{The impedance measurement of the Electric Machine.}
-    \label{fig:impedance_motor}
-\end{figure}
-
-From the measured impedance, a \emph{loss factor} $\Phi(\omega)$ is extracted as
+A common approach models the machine by a frequency-dependent impedance $Z(j\omega)$, obtained via LCR measurement or harmonic injection, as shown in Fig.~\ref{fig:impedance_motor}.  
+From this, a voltage-based \emph{loss factor} is extracted:
 \begin{equation}
-    \Phi(\omega) \;=\; \frac{P_{\text{add}}(\omega)}{|V(\omega)|^2},
+    \Phi(\omega) = \frac{P_{\text{add}}(\omega)}{|V(\omega)|^2},
     \label{eq:loss_factor}
 \end{equation}
-where $P_{\text{add}}(\omega)$ is the additional harmonic loss at frequency $\omega$ and $|V(\omega)|$ is the harmonic voltage magnitude. 
-An example loss factor curve is shown in Fig. \ref{fig:loss_factor} 
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.8\linewidth]{Figures/HarmonicLoss/LossFactor.png}
-    \caption{The loss factor of electric machine.}
-    \label{fig:loss_factor}
-\end{figure}
-
-
-By combining these loss factors with the harmonic spectrum obtained from the inverter modulation (via FFT of the switching function), the total harmonic losses are calculated as
+where $P_{\text{add}}(\omega)$ is the additional loss caused by a voltage component $V(\omega)$.  
+The harmonic losses are then computed by superposition:
 \begin{equation}
     P_{\text{harm}} = \sum_{n\neq 1} \Phi(\omega_n)\,|V_n|^2,
     \label{eq:freq_loss}
 \end{equation}
-where $\omega_n=n\omega_e$ is the $n$th harmonic frequency. The flowchart of the calculation is given in Fig. \ref{fig:loss_calculation}.
+with $\omega_n = n\omega_e$.  
+This method assumes negligible saturation and saliency ($L_d \!\approx\! L_q$).
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/HarmonicLoss/LossCaclulationConventional.png}
-    \caption{The flow-chart of the loss calculation.}
-    \label{fig:loss_calculation}
+    \includegraphics[width=0.7\linewidth]{Figures/HarmonicLoss/ImpadanceMotor.png}
+    \caption{Impedance measurement of the machine.}
+    \label{fig:impedance_motor}
 \end{figure}
 
+\subsection{Effect Saliency and Saturation}
 
-This frequency-domain superposition is valid only for non-saturated machines with negligible saliency ($L_d \approx L_q$). When saturation or saliency is present, the $d$–$q$ coupling introduces interactions between harmonic pairs, and \eqref{eq:freq_loss} is no longer sufficient.
-To investigate this limitation, voltage and current waveforms were measured under inverter excitation, as shown in Fig.\ref{fig:voltagecurrentTime}. 
-
+Experimental waveforms under inverter excitation (Fig.~\ref{fig:voltagecurrentTime}) reveal that the FFT-based power spectrum (Fig.~\ref{fig:powerFFT}) contains negative components, i.e., some harmonics appear as generating power.  
+This indicates interaction between harmonics, which the independent-harmonic model cannot explain.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{Figures/HarmonicLoss/voltageCurrentTime.png}
-    \caption{Phase Voltage and Current of the Electric Machine.}
+    \caption{Measured phase voltage and current.}
     \label{fig:voltagecurrentTime}
 \end{figure}
-
-
-The instantaneous power was calculated for each specific frequency using FFTs of the voltage and currents. :
-\begin{equation}
-    S(\omega_n) = V(\omega_n) I^*(\omega_n), \quad
-    P(\omega_n) = \Re\{S(\omega_n)\}.
-    \label{eq:fft_power}
-\end{equation}
-The resulting spectrum reveals that several components have negative values of $P(\omega_n)$, i.e., certain harmonics appear as power-generating terms as shown in Fig. \ref{fig:powerFFT}
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{Figures/HarmonicLoss/FFTPower_exp.png}
-    \caption{Power spectrum of the Inverter.}
+    \caption{Measured harmonic power spectrum.}
     \label{fig:powerFFT}
 \end{figure}
 
-This indicates interaction between harmonics, which cannot be explained by the independent-harmonic model for estimating the losses.
-% The source of these effects is the difference between $L_d$ and $L_q$.  
-% To capture this effect, the loss factor multiplication must be updated regarding the harmonic interaction. 
-The interaction can be explained by saturation and saliency, i.e., $L_d \neq L_q$, which introduces a double-fundamental modulation of the phase inductance. A simple time-varying inductance model is
+The effect originates from saliency ($L_d \neq L_q$), which modulates the inductance at $2\omega_e$:
 \begin{equation}
-    L(t) \;=\; L_0 \;+\; \Delta L \,\sin\!\big(2\omega_e t - \theta\big),
+    L(t) = L_0 + \Delta L \,\sin(2\omega_e t - \theta),
     \label{eq:L_time}
 \end{equation}
-with $L_0=\tfrac{L_d+L_q}{2}$, $\Delta L=\tfrac{L_q-L_d}{2}$, and $\omega_e$ the fundamental electrical frequency. Since $i(t)\approx \tfrac{1}{L(t)}\!\int v(t)dt$, the $2\omega_e$ modulation in \eqref{eq:L_time} mixes spectral components whose frequency indices differ by two. In the frequency domain, this yields the small-signal relation
+with $L_0=(L_d+L_q)/2$, $\Delta L=(L_q-L_d)/2$. In the frequency domain, this creates cross-admittances $Y_{n,m}$ that couple harmonics separated by two indices:
 \begin{equation}
-    I_n \;\approx\; Y_n V_n \;+\; \sum_{m} Y_{n,m}\,V_m,\qquad 
-    Y_{n,m} \neq 0 \;\;\text{only if}\;\; |n-m|=2,
+    I_n \approx Y_n V_n + \sum_m Y_{n,m}V_m, \quad Y_{n,m}\neq0 \;\; \text{if}\; |n-m|=2.
     \label{eq:mixing}
 \end{equation}
-where $Y_n$ is the self-admittance at $\omega_n=n\omega_e$ and $Y_{n,m}$ are saliency-induced cross-admittances created by the $2\omega_e$ modulation. Consequently, harmonic pairs such as $(n,m)$ exchange energy and no longer behave independently.
 
-To reflect this in a voltage-based loss formulation, we augment the conventional superposition with pairwise cross terms. Denoting a voltage-based stator loss factor $\Phi_s(\omega)$ (identified from impedance/LCR data) and collecting only the dominant saliency-coupled pairs ($|n-m|=2$), we write
+\subsection{Extended Formulation with Harmonic Pair Interaction in Stator}
+
+To capture these effects, the loss model is extended with cross terms:
 \begin{equation}
-    P_{\text{harm}} \;=\; \sum_{n\neq 1} \Phi_s(\omega_n)\,|V_n|^2
-    \;+\; \sum_{\substack{n\neq m\\ |n-m|=2}}
-    \chi_{n,m}\,\Re\!\big\{V_n V_m^{*}\big\}
+    P_{\text{harm}} = \sum_{n\neq 1} \Phi_s(\omega_n)\,|V_n|^2
+    + \sum_{\substack{n\neq m \\ |n-m|=2}} \chi_{n,m}\,\Re\{V_n V_m^{*}\},
     \label{eq:saliency_loss}
 \end{equation}
-where the interaction coefficients $\chi_{n,m}$ compactly capture the effect of $Y_{n,m}$ in \eqref{eq:mixing} and the voltage-to-loss mapping. 
-In practice, $\chi_{n,m}$ can be identified from measured spectra by least squares across operating points. Negative bars in the measured power spectrum (Fig.~\ref{fig:powerFFT}) occur when $\Re\!\{V_n V_m^{*}\}<0$ and/or $\chi_{n,m}<0$, producing partial cancellation and apparent ``generation'' at certain frequencies.
+where $\Phi_s(\omega)$ is the stator loss factor and $\chi_{n,m}$ are interaction coefficients identified experimentally.  
+Negative spectral bars arise when $\Re\{V_n V_m^{*}\}<0$ or $\chi_{n,m}<0$, reflecting partial cancellation.
 
+\subsection{Harmonic Interaction in Rotor Losses}
+Rotor losses are also subject to harmonic interaction. After the $2\omega_e$ modulation, each current harmonic can be decomposed into positive and negative sequences:
+\begin{align}
+    I_{+,n} =& \tfrac{1}{3}(I_{a,n}+a^2 I_{b,n}+a I_{c,n}), \\
+    I_{-,n} =& \tfrac{1}{3}(I_{a,n}+a I_{b,n}+a^2 I_{c,n}),
+    \label{eq:seq_decomp}
+\end{align} 
 
-
-
-% Each harmonic must therefore be decomposed into positive- and negative-sequence components:
-% \begin{equation}
-%     V_{+,n} = \tfrac{1}{3}(V_{a,n}+a^2 V_{b,n}+a V_{c,n}), \quad
-%     V_{-,n} = \tfrac{1}{3}(V_{a,n}+a V_{b,n}+a^2 V_{c,n}),
-%     \label{eq:seq_decomp}
-% \end{equation}
-% with $a=e^{j2\pi/3}$. 
-% Since the rotor perceives the same frequency for certain positive–negative sequence pairs, these components interact, leading to amplification or cancellation of the associated harmonic losses. To capture this effect, the loss factor multiplication must be updated by distinguishing stator and rotor contributions for both positive and negative sequences:
+with $a=e^{j2\pi/3}$.  Because the rotor rotation shifts the apparent frequency differently—positive-sequence components appear at a reduced frequency and negative-sequence components at an increased frequency—certain positive–negative sequence pairs align to the same rotor frequency and thus interact.  
+% The generalized formulation distinguishes stator and rotor contributions for both sequences:
 % \begin{equation}
 % \begin{aligned}
 %     P_{\text{harm}} = \sum_{n\neq 1} &\Big(
@@ -224,44 +195,41 @@ In practice, $\chi_{n,m}$ can be identified from measured spectra by least squar
 % \end{aligned}
 % \label{eq:seq_loss}
 % \end{equation}
-% where $\Phi_{s}^{(\pm)}$ and $\Phi_{r}^{(\pm)}$ are the stator and rotor loss factors, and $\omega_{r,n}^{(\pm)}$ denote the rotor frequencies observed by positive and negative sequence harmonics. This refined formulation generalizes the conventional superposition approach and explains the negative and interaction terms observed experimentally.
+% where $\Phi_{s}^{(\pm)}$ and $\Phi_{r}^{(\pm)}$ are the stator and rotor loss factors, and $\omega_{r,n}^{(\pm)}$ are the rotor frequencies seen by each sequence.  
+In the present machine, however, these rotor harmonics losses are much smaller than the stator harmonic losses. For modelling feasibility, rotor terms are therefore neglected, and only the dominant stator harmonic interactions are explicitly considered.
 
 
-% Impadance-based loss factor modeling has been studied before, and LCR meter measurements are widely used and compared the harmonic injection. 
-% The loss calculation of the motor harmonic, after getting the loss factor, is to sum each harmonic component's losses. This is valid, if we do not have saturation and Ld-Lq inductance differences. However, introducing Ld-Lq differences causes interaction between the harmonic pairs, which affects the harmonic losses. 
-% An experimental, time domain voltage and current waveforms are obtained in an experimental setup to define the problem as shown in Fig.X. 
 
+% \section{Inverter Loss Modelling}
 
-\section{Inverter Loss Modelling}
+% The total inverter losses comprise conduction and switching losses.  
+% For a single MOSFET, the conduction loss is
+% \begin{equation}
+%     \label{eq:conductionlosses}
+%      P_c = \frac{1}{2\pi} \int_{\theta_{C1}}^{\theta_{C2}} r_{ds} \, i_{ds}^2(\theta) D(\theta)\,d\theta ,
+% \end{equation}
+% where $r_{ds}$ is the on-state resistance, $i_{ds}(\theta)$ the device current, $D(\theta)$ the duty ratio, and $\theta_{C1}$–$\theta_{C2}$ the conduction interval.  
+% Body diode conduction is neglected, which slightly overestimates reverse conduction and underestimates dead-time losses, partly compensating each other \cite{PotentialAircraft}.
 
-The total inverter losses comprise conduction and switching losses.  
-For a single MOSFET, the conduction loss is
-\begin{equation}
-    \label{eq:conductionlosses}
-     P_c = \frac{1}{2\pi} \int_{\theta_{C1}}^{\theta_{C2}} r_{ds} \, i_{ds}^2(\theta) D(\theta)\,d\theta ,
-\end{equation}
-where $r_{ds}$ is the on-state resistance, $i_{ds}(\theta)$ the device current, $D(\theta)$ the duty ratio, and $\theta_{C1}$–$\theta_{C2}$ the conduction interval.  
-Body diode conduction is neglected, which slightly overestimates reverse conduction and underestimates dead-time losses, partly compensating each other \cite{PotentialAircraft}.
-
-Switching losses consist of zero-current energy and overlap energy \cite{FOMSiC}.  
-The former depends on device output capacitance,
-\begin{equation}
-\label{eq:Psw-0}
-     E_{sw,ZCS} = C_{oss,Q}(U_{dc}) \, U_{dc}^{2},
-\end{equation}
-while the latter depends on current and voltage slopes,
-\begin{equation}
-\label{eq:overlapped}
-     \begin{split}
-     E_{sw,ov} &= \frac{V_{dc} I_{sw}^2}{2\, \tfrac{di}{dt_{on}}} + \frac{V_{dc}^2 I_{sw}}{2\, \tfrac{dv}{dt_{on}}} \\
-     &+ \frac{V_{dc} I_{sw}^2}{2\, \tfrac{di}{dt_{off}}} + \frac{V_{dc}^2 I_{sw}}{2\, \tfrac{dv}{dt_{off}}}.
-    \end{split}
-\end{equation}
-Total switching losses are then
-\begin{equation}
-    \label{eq:switching_general}
-     P_{sw} = \frac{f_{sw}}{2\pi} \int_{\theta_{SW1}}^{\theta_{SW2}} (E_{sw,ov} + E_{sw,ZCS}) \, d\theta .
-\end{equation}
+% Switching losses consist of zero-current energy and overlap energy \cite{FOMSiC}.  
+% The former depends on device output capacitance,
+% \begin{equation}
+% \label{eq:Psw-0}
+%      E_{sw,ZCS} = C_{oss,Q}(U_{dc}) \, U_{dc}^{2},
+% \end{equation}
+% while the latter depends on current and voltage slopes,
+% \begin{equation}
+% \label{eq:overlapped}
+%      \begin{split}
+%      E_{sw,ov} &= \frac{V_{dc} I_{sw}^2}{2\, \tfrac{di}{dt_{on}}} + \frac{V_{dc}^2 I_{sw}}{2\, \tfrac{dv}{dt_{on}}} \\
+%      &+ \frac{V_{dc} I_{sw}^2}{2\, \tfrac{di}{dt_{off}}} + \frac{V_{dc}^2 I_{sw}}{2\, \tfrac{dv}{dt_{off}}}.
+%     \end{split}
+% \end{equation}
+% Total switching losses are then
+% \begin{equation}
+%     \label{eq:switching_general}
+%      P_{sw} = \frac{f_{sw}}{2\pi} \int_{\theta_{SW1}}^{\theta_{SW2}} (E_{sw,ov} + E_{sw,ZCS}) \, d\theta .
+% \end{equation}
 
 
 % \subsection{Semiconductor Loss Modelling}
@@ -337,9 +305,9 @@ Total switching losses are then
 
 \section{Holistic Efficiency Optimization of the Traction System}
 
-\subsection{The Selection of Power Switch}
+\subsection{The Selection of Power Switch and Inverter Loss Map}
 Selecting the voltage rating of a switch has a noteworthy impact on the design stage of the traction inverter. 
-It is often selected higher than the blocking voltage with a safety factor to account for voltage overshoots caused by high switching speeds and layout parasitics and the effect of cosmic rays on reliability \cite{layout2}.
+It is often selected higher than the blocking voltage with a safety factor to account for voltage overshoots caused by high switching speeds and layout parasitics, and the effect of cosmic rays on reliability \cite{layout2}.
 In our system, the safety factor of 1.6 is selected, leading to the switches' voltage ratings of 2000 V for 2-level topologies. 
 Furthermore, the current rating of the switch plays a critical role in the efficiency performance of the inverter. 
 
@@ -379,6 +347,7 @@ Furthermore, the current rating of the switch plays a critical role in the effic
 
 \color{red}
 The remaining parts will be given in the full paper.
+
 \section{Experimental Validation}
 
 \section{Conclusion }
